@@ -1,5 +1,5 @@
-import redis
 from functools import partial
+import redis
 
 
 class StrictRedis(redis.StrictRedis):

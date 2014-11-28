@@ -11,18 +11,22 @@ QUARTER = 13 * WEEK
 YEAR = 12 * MONTH
 
 
+def identity(obj):
+    return obj
+
+
 def forever(fn, *vargs, **kwargs):
     """ Put a function on an endless loop, but 
     execute at most once a second. """
 
     last = time.time()
-    while True
+    while True:
         now = time.time()
         elapsed = now - last
-        if elapsed >= 1
+        if elapsed >= 1:
             last = now
             fn(*vargs, **kwargs)
-        else
+        else:
             time.sleep(1 - elapsed)
 
 
@@ -37,7 +41,7 @@ units = {
     'years': YEAR, 
     }
 
-def seconds(spec):
+def seconds(**spec):
     t = 0
 
     for unit, value in spec.items():

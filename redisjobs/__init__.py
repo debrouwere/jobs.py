@@ -1,6 +1,9 @@
 import functools
 import time
+import json
+
 import base
+import utils
 
 
 PARSERS = {
@@ -9,7 +12,7 @@ PARSERS = {
 }
 
 
-def parse_job(s, format='plain'):
+def parse(s, format='plain'):
     if isinstance(s, basestring):
         if format in PARSERS:
             return PARSERS[format](s)
@@ -25,11 +28,11 @@ class Queue(object):
         self.client = board.client
         self.name = name
         self.key = "{queue}:{name}".format(
-            queue=board.keys.queue, name=name)
+            queue=board.keys['queue'], name=name)
 
     def pop(self, format='plain'):
         meta = self.client.jpop(1, self.key)
-        return parse_format(meta, format)
+        return parse(meta, format)
 
     def listen(self, *vargs):
         if len(vargs) == 2:
@@ -60,26 +63,29 @@ class Board(object):
         }
         self.client = base.StrictRedis(*vargs, **kwargs)
 
-    def put(self, id, runner, payload, schedule, update=True):
-        now = time.time()
-        if update is True:
+    def put(self, id, runner, payload, **options):
+        now = int(time.time())
+        if options.get('update', True):
             setter = self.client.jset
         else:
             setter = self.client.jsetnx
 
-        interval = utils.seconds(schedule)
+        interval = utils.seconds(**options)
 
-        if schedule['repeat']:
+        if options.get('repeat'):
             raise NotImplementedError()
-        elif schedule['duration']:
-            schedule.setdefault('start', now)
-            schedule['stop'] = schedule['start'] + schedule['duration']
+        elif options.get('duration'):
+            options.setdefault('start', now)
+            options['stop'] = options['start'] + options['duration']
 
+        # in Redis, everything is a string, so passing on a None argument
+        # leads to all sorts of weirdness; instead, we have sensible 
+        # defaults for everything
         return setter(
             3, self.keys['board'], self.keys['schedule'], self.keys['registry'], 
             now, id, runner, payload, interval, 
-            schedule.get('start'), schedule.get('stop'), 
-            schedule.get('lambda'), schedule.get('step'), 
+            options.get('start', 0), options.get('stop', '+inf'), 
+            options.get('lambda', 1), options.get('step', utils.DAY), 
             )
 
     def create(self, id, runner, payload, schedule):
@@ -88,10 +94,9 @@ class Board(object):
     def schedule(self, *vargs, **kwargs):
         raise NotImplementedError()
 
-    @parse
     def show(self, id, format='plain'):
         meta = self.client.jget(1, 'jobs', id)
-        return parse_job(meta, format)
+        return parse(meta, format)
 
     def dump(self):
         return self.client.hgetall('jobs')
