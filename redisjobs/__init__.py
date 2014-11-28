@@ -34,15 +34,7 @@ class Queue(object):
         meta = self.client.jpop(1, self.key)
         return parse(meta, format)
 
-    def listen(self, *vargs):
-        if len(vargs) == 2:
-            format, listener = vargs
-        elif len(vargs) == 1:
-            format = 'plain'
-            listener = vargs[0]
-        else:
-            raise KeyError()
-        
+    def listen(self, listener, format='plain'):        
         def communicate():
             popped = self.pop(format)
             if popped:
@@ -130,4 +122,4 @@ class Board(object):
 
     def respond(self, queue, fn):
         queue = self.get_queue(queue)
-        queue.listen(fn)
+        queue.listen(fn, 'json')
