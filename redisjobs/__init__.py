@@ -77,7 +77,7 @@ class Board(object):
             3, self.keys['board'], self.keys['schedule'], self.keys['registry'], 
             now, id, runner, payload, interval, 
             options.get('start', 0), options.get('stop', '+inf'), 
-            options.get('lambda', 1), options.get('step', utils.DAY), 
+            options.get('decay', 1), options.get('step', utils.DAY), 
             )
 
     def create(self, id, runner, payload, schedule):
