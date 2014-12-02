@@ -91,7 +91,22 @@ class Board(object):
         return parse(meta, format)
 
     def dump(self):
-        return self.client.hgetall('jobs')
+        runners = self.client.hgetall(self.keys['registry'])
+        jobs = self.client.hgetall(self.keys['board'])
+        out = {}
+        out['runners'] = runners
+        out['jobs'] = {}
+        for job_id, serialized_meta in jobs.items():
+            out['jobs'][job_id] = json.loads(serialized_meta)
+
+        return out
+
+    def load(self, board):
+        runners = board['runners']
+        jobs = {job_id: json.dumps(meta) for job_id, meta in board['jobs'].items()}
+        self.client.hmset(self.keys['registry'], runners)
+        self.client.hmset(self.keys['board'], jobs)
+        return self.client.hlen(self.keys['board'])
 
     def remove(self, id):
         return self.client.jdel(2, self.keys.board, self.keys.schedule, id)
