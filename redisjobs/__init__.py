@@ -80,8 +80,9 @@ class Board(object):
             options.get('decay', 1), options.get('step', utils.DAY), 
             )
 
-    def create(self, id, runner, payload, schedule):
-        return self.put(id, runner, payload, schedule, update=False)
+    def create(self, id, runner, payload, **options):
+        options['update'] = False
+        return self.put(id, runner, payload, **options)
 
     def schedule(self, *vargs, **kwargs):
         raise NotImplementedError()
