@@ -108,7 +108,7 @@ class Board(object):
         # the exact state of Redis at the time of the backup,  
         # but does require care to make sure it continues to 
         # adhere to the Jobs API
-        now = now or int(time.time())
+        now = int(time.time())
         runners = board['runners']
         jobs = {job_id: json.dumps(meta) for job_id, meta in board['jobs'].items()}
         self.client.hmset(self.keys['registry'], runners)
