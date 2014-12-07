@@ -102,11 +102,19 @@ class Board(object):
 
         return out
 
-    def load(self, board):
+    def load(self, board, update=False):
+        # currently this bypasses `jset`, which makes it easier 
+        # to guarantee that a loaded backup will return us to 
+        # the exact state of Redis at the time of the backup,  
+        # but does require care to make sure it continues to 
+        # adhere to the Jobs API
+        now = now or int(time.time())
         runners = board['runners']
         jobs = {job_id: json.dumps(meta) for job_id, meta in board['jobs'].items()}
         self.client.hmset(self.keys['registry'], runners)
         self.client.hmset(self.keys['board'], jobs)
+        for job_id in board['jobs'].keys():
+            self.client.jnext(2, self.keys['board'], self.keys['schedule'], now, job_id)
         return self.client.hlen(self.keys['board'])
 
     def remove(self, id):
@@ -138,4 +146,5 @@ class Board(object):
 
     def respond(self, queue, fn):
         queue = self.get_queue(queue)
+        print queue.key
         queue.listen(fn, 'json')
