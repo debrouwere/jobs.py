@@ -4,6 +4,7 @@ import redis
 
 class StrictRedis(redis.StrictRedis):
     def __init__(self, *vargs, **kwargs):
+        kwargs['decode_responses'] = True
         super(StrictRedis, self).__init__(*vargs, **kwargs)
         commands = self.hgetall('commands')
 

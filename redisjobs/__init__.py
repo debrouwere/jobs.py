@@ -2,8 +2,8 @@ import functools
 import time
 import json
 
-import base
-import utils
+from . import base
+from . import utils
 
 
 PARSERS = {
@@ -117,6 +117,14 @@ class Board(object):
             self.client.jnext(2, self.keys['board'], self.keys['schedule'], now, job_id)
         return self.client.hlen(self.keys['board'])
 
+    def count(self):
+        runners = self.client.hgetall(self.keys['registry'])
+        queues = [self.get_queue(runner).key for runner in runners.keys()]
+        n_keys = 3 + len(queues)
+        counts = self.client.jcount(n_keys, 
+            self.keys['board'], self.keys['schedule'], self.keys['registry'], queues)
+        return json.loads(counts)   
+
     def remove(self, id):
         return self.client.jdel(2, self.keys.board, self.keys.schedule, id)
 
@@ -129,10 +137,7 @@ class Board(object):
     def tick(self, now=None):
         now = now or int(time.time())
         runners = self.client.hgetall(self.keys['registry'])
-        queues = []
-        for runner, command in runners.items():
-            queue = self.get_queue(runner)
-            queues.append(queue.key)
+        queues = [self.get_queue(runner).key for runner in runners.keys()]
 
         n_queues = len(queues)
         n_keys = n_queues + 2
@@ -146,5 +151,5 @@ class Board(object):
 
     def respond(self, queue, fn):
         queue = self.get_queue(queue)
-        print queue.key
+        print(queue.key)
         queue.listen(fn, 'json')
