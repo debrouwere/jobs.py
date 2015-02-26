@@ -6,6 +6,14 @@ from . import base
 from . import utils
 
 
+# Python 3 compatibility
+try:
+    basestring
+except NameError:
+    basestring = str
+
+
+
 PARSERS = {
     'json': json.loads, 
     'plain': utils.identity, 
