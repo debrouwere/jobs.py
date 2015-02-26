@@ -159,5 +159,4 @@ class Board(object):
 
     def respond(self, queue, fn):
         queue = self.get_queue(queue)
-        print(queue.key)
         queue.listen(fn, 'json')
