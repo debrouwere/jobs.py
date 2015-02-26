@@ -130,7 +130,7 @@ class Board(object):
         queues = [self.get_queue(runner).key for runner in runners.keys()]
         n_keys = 3 + len(queues)
         counts = self.client.jcount(n_keys, 
-            self.keys['board'], self.keys['schedule'], self.keys['registry'], queues)
+            self.keys['board'], self.keys['schedule'], self.keys['registry'], *queues)
         return json.loads(counts)   
 
     def remove(self, id):
